@@ -13,7 +13,7 @@
   "devDependencies": {
     "d3": "4",
     "d3-selection-multi": "1",
-    "eslint": "2",
+    "eslint": ">=4.18.2",
     "jsdom": "9",
     "package-preamble": "0.0",
     "rollup": "0.41",
@@ -21,7 +21,8 @@
     "rollup-plugin-node-resolve": "2",
     "tape": "4",
     "svgdom": "^0.0.15",
-    "uglify-js": "2"
+    "uglify-js": ">=2.6.0"
+}
   },
   "repository": {
     "type": "git",
