@@ -1,0 +1,13 @@
+%>%	pipe
+drawr	drawr
+run_demo	run_demo
+shinydrawr	shinydrawr
+shinydrawr_UI	shinydrawr_UI
+shinylistenr	shinylistenr
+shinylistenr_UI	shinylistenr_UI
+shinymovr	shinymovr
+shinymovr_UI	shinymovr_UI
+shinyswipr	shinyswipr
+shinyswipr_UI	shinyswipr_UI
+shinyviewr	shinyviewr
+shinyviewr_UI	shinyviewr_UI
