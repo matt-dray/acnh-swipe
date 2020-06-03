@@ -2,22 +2,24 @@
 # Matt Dray (@mattdray, www.rostrum.blog)
 # June 2020
 
+# Packages ----------------------------------------------------------------
 
-# Attach packages ---------------------------------------------------------
 
-library(shinysense)  # remotes::insatll.github("nstrayer/shinysense")
+library(shinysense)  # remotes::install.github("nstrayer/shinysense")
 library(shiny)
 library(dplyr)
 library(readr)
+library(googlesheets4)
+
 
 # UI ----------------------------------------------------------------------
 
 
 ui <- fixedPage(
-  h1("Animal Crossing Tinder"),
+  h1("[WIP] Animal Crossing Tinder"),
   p("Swipe right to approve a villager. Left to discard."),
   hr(),
-  shinyswipr_UI( "quote_swiper",
+  shinyswipr_UI( "acnh_swipe",
                  h4("Swipe Me!"),
                  hr(),
                  htmlOutput("url"),
@@ -29,23 +31,21 @@ ui <- fixedPage(
   tableOutput("resultsTable")
 )
 
-
 # Server ------------------------------------------------------------------
-
 
 server <- function(input, output, session) {
   
   # Data from Tidy Tuesday and Kaggle
   # https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-05-05/readme.md
   # https://www.kaggle.com/jessicali9530/animal-crossing-new-horizons-nookplaza-dataset/data
-  villagers_k <- read_csv("data/villagers-kaggle.csv")
-  villagers_tt <- read_csv("data/villagers-tuesday.csv")
+  villagers_k <- suppressMessages(read_csv("data/villagers-kaggle.csv"))
+  villagers_tt <- suppressMessages(read_csv("data/villagers-tuesday.csv"))
   villagers <- left_join(villagers_k, villagers_tt, by = c("Name" = "name")) %>% 
     mutate(url = paste0("<img src='", url, "'>"))
+  villager <- sample_n(villagers, 1)  # sample one villager
   
-  card_swipe <- callModule(shinyswipr, "quote_swiper")
+  card_swipe <- callModule(shinyswipr, "acnh_swipe")
   
-  villager <- sample_n(villagers, 1)
   output$name <- renderText({ villager$Name })
   output$species <- renderText({ villager$Species })
   output$url <- renderImage({ villager$url })
@@ -62,31 +62,39 @@ server <- function(input, output, session) {
   )
   
   observeEvent( card_swipe(),{
-    #Record our last swipe results.
-    appVals$swipes <- rbind(
-      data.frame(
-        name  = appVals$villager$Name,
-        species  = appVals$villager$Species,
-        url  = appVals$villager$url,
-        swipe  = card_swipe()
-      ),
-      appVals$swipes
+    
+    # Record our last swipe results
+    latest_result <- data.frame(
+      name  = appVals$villager$Name,
+      species  = appVals$villager$Species,
+      swipe  = card_swipe()
     )
-    #send results to the output.
+    
+    # # Send to Google Sheets
+    # date_col <- data.frame(date = Sys.time())  # capture date
+    # sheet_append(
+    #   "1kMbmav6XvYqnTO202deyZQh37JeWtTK4ThIXdxGmEbs",
+    #   cbind(date_col, latest_result)
+    # )  # add a row to the sheet
+    
+    # Add to table of all swipe results
+    appVals$swipes <- rbind(latest_result, appVals$swipes)
+    
+    # Send results to the output
     output$resultsTable <- renderTable({ appVals$swipes })
     
-    #update the quote
+    # Update the villager
     appVals$villager <- sample_n(villagers, 1)
     
-    #send update to the ui
+    # Send update to ui
     output$name <- renderText({ appVals$villager$Name })
     output$species <- renderText({ appVals$villager$Species })
     output$url <- renderText({ appVals$villager$url })
-  }) #close event observe.
+    
+  }) # Close event observe.
+  
 }
 
 # Run ---------------------------------------------------------------------
 
-
-# wrap it all together.
 shinyApp(ui, server)
