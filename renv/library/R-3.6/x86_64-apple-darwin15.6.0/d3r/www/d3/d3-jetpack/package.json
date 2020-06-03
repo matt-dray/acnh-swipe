@@ -21,7 +21,8 @@
     "rollup-plugin-node-resolve": "2",
     "tape": "4",
     "svgdom": "^0.0.15",
-    "uglify-js": "2"
+    "uglify-js": ">=2.6.0"
+}
   },
   "repository": {
     "type": "git",
