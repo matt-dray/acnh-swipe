@@ -20,7 +20,7 @@ gs4_auth(token = drive_token())
 
 # UI ----------------------------------------------------------------------
 
-ui <- fluidPage(
+ui <- fixedPage(
   
   tags$head(
     tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
@@ -32,24 +32,38 @@ ui <- fluidPage(
   
   h1("[WIP] Animal Crossing Tinder"),
   p("Best viewed on mobile"),
-  hr(),
+  hr(), br(),
   
   shinyswipr_UI(
+    
     "acnh_swipe",
+    
     p(
       icon("arrow-alt-circle-left"), 
       "Discard | Approve",
       icon("arrow-alt-circle-right"), 
     ),
     hr(),
-    htmlOutput("url"),
-    h4("Name:"), 
-    textOutput("name"),
-    h4("Species:"), 
-    textOutput("species")
+    
+    fluidRow(
+      column(
+        4,
+        h4("Name:"), textOutput("name"),
+        h4("Species:"), textOutput("species"),
+        br()
+      ),
+      column(4, htmlOutput("url")),
+      column(
+        4,
+        h4("Personality:"), textOutput("personality"),
+        h4("Hobby:"), textOutput("hobby"),
+        br()
+      ),
+    )
+    
   ),
   
-  hr(),
+  br(), hr(),
   
   h4("Swipe history"),
   column(12, align = "center", tableOutput("resultsTable"))
@@ -74,6 +88,8 @@ server <- function(input, output, session) {
   output$url <- renderText({ villager$url })
   output$name <- renderText({ villager$Name })
   output$species <- renderText({ villager$Species })
+  output$personality <- renderText({ villager$Personality })
+  output$hobby <- renderText({ villager$Hobby })
   
   output$resultsTable <- renderDataTable({ appVals$swipes })
   
@@ -83,6 +99,8 @@ server <- function(input, output, session) {
       url = character(),
       name = character(),
       species = character(),
+      personality = character(),
+      hobby = character(),
       swipe = character()
     )
   )
@@ -93,6 +111,8 @@ server <- function(input, output, session) {
     latest_result <- data.frame(
       name = appVals$villager$Name,
       species = appVals$villager$Species,
+      personality = appVals$villager$Personality,
+      hobby = appVals$villager$Hobby,
       swipe = card_swipe()
     )
     
@@ -116,6 +136,8 @@ server <- function(input, output, session) {
     output$url <- renderText({ appVals$villager$url })
     output$name <- renderText({ appVals$villager$Name })
     output$species <- renderText({ appVals$villager$Species })
+    output$personality <- renderText({ appVals$villager$Personality })
+    output$hobby <- renderText({ appVals$villager$Hobby })
     
   }) # Close event observe.
   
