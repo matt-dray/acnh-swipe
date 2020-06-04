@@ -2,33 +2,58 @@
 # Matt Dray (@mattdray, www.rostrum.blog)
 # June 2020
 
-# Packages ----------------------------------------------------------------
 
+# Setup -------------------------------------------------------------------
 
+# Attach packages
 library(shinysense)  # remotes::install.github("nstrayer/shinysense")
 library(shiny)
 library(dplyr)
 library(readr)
+library(googledrive)
 library(googlesheets4)
 
+# Communicate with Google Sheets
+options(gargle_oauth_cache = ".secrets")
+drive_auth(cache = ".secrets", email = "mattdrayshiny@gmail.com")
+gs4_auth(token = drive_token())
 
 # UI ----------------------------------------------------------------------
 
-
-ui <- fixedPage(
-  h1("[WIP] Animal Crossing Tinder"),
-  p("Swipe right to approve a villager. Left to discard."),
-  hr(),
-  shinyswipr_UI( "acnh_swipe",
-                 h4("Swipe Me!"),
-                 hr(),
-                 htmlOutput("url"),
-                 h4("Name:"), textOutput("name"),
-                 h4("Species:"), textOutput("species")
+ui <- fluidPage(
+  
+  tags$head(
+    tags$link(rel = "stylesheet", type = "text/css", href = "custom.css")
   ),
+
+  class = "text-center",
+  
+  title = "Animal Crossing Tinder",
+  
+  h1("[WIP] Animal Crossing Tinder"),
+  p("Best viewed on mobile"),
   hr(),
+  
+  shinyswipr_UI(
+    "acnh_swipe",
+    p(
+      icon("arrow-alt-circle-left"), 
+      "Discard | Approve",
+      icon("arrow-alt-circle-right"), 
+    ),
+    hr(),
+    htmlOutput("url"),
+    h4("Name:"), 
+    textOutput("name"),
+    h4("Species:"), 
+    textOutput("species")
+  ),
+  
+  hr(),
+  
   h4("Swipe history"),
-  tableOutput("resultsTable")
+  column(12, align = "center", tableOutput("resultsTable"))
+
 )
 
 # Server ------------------------------------------------------------------
@@ -42,40 +67,41 @@ server <- function(input, output, session) {
   villagers_tt <- suppressMessages(read_csv("data/villagers-tuesday.csv"))
   villagers <- left_join(villagers_k, villagers_tt, by = c("Name" = "name")) %>% 
     mutate(url = paste0("<img src='", url, "'>"))
-  villager <- sample_n(villagers, 1)  # sample one villager
   
   card_swipe <- callModule(shinyswipr, "acnh_swipe")
   
+  villager <- sample_n(villagers, 1)  # sample one villager
+  output$url <- renderText({ villager$url })
   output$name <- renderText({ villager$Name })
   output$species <- renderText({ villager$Species })
-  output$url <- renderImage({ villager$url })
+  
   output$resultsTable <- renderDataTable({ appVals$swipes })
   
   appVals <- reactiveValues(
     villager  = villager,
     swipes = data.frame(
+      url = character(),
       name = character(),
       species = character(),
-      url = character(),
       swipe = character()
     )
   )
   
-  observeEvent( card_swipe(),{
+  observeEvent(card_swipe(), {
     
     # Record our last swipe results
     latest_result <- data.frame(
-      name  = appVals$villager$Name,
-      species  = appVals$villager$Species,
-      swipe  = card_swipe()
+      name = appVals$villager$Name,
+      species = appVals$villager$Species,
+      swipe = card_swipe()
     )
     
-    # # Send to Google Sheets
-    # date_col <- data.frame(date = Sys.time())  # capture date
-    # sheet_append(
-    #   "1kMbmav6XvYqnTO202deyZQh37JeWtTK4ThIXdxGmEbs",
-    #   cbind(date_col, latest_result)
-    # )  # add a row to the sheet
+    # Send to Google Sheets
+    date_col <- data.frame(date = Sys.time())  # capture date
+    sheet_append(
+      "1kMbmav6XvYqnTO202deyZQh37JeWtTK4ThIXdxGmEbs",
+      cbind(date_col, latest_result)
+    )  # add a row to the sheet
     
     # Add to table of all swipe results
     appVals$swipes <- rbind(latest_result, appVals$swipes)
@@ -87,9 +113,9 @@ server <- function(input, output, session) {
     appVals$villager <- sample_n(villagers, 1)
     
     # Send update to ui
+    output$url <- renderText({ appVals$villager$url })
     output$name <- renderText({ appVals$villager$Name })
     output$species <- renderText({ appVals$villager$Species })
-    output$url <- renderText({ appVals$villager$url })
     
   }) # Close event observe.
   
