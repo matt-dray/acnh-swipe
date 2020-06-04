@@ -31,7 +31,7 @@ ui <- fixedPage(
   title = "Animal Crossing Tinder",
   
   h1("[WIP] Animal Crossing Tinder"),
-  p("Best viewed on mobile"),
+  p("Swipe on mobile • Click and drag on desktop"),
   hr(), br(),
   
   shinyswipr_UI(
@@ -40,7 +40,7 @@ ui <- fixedPage(
     
     p(
       icon("arrow-alt-circle-left"), 
-      "Discard | Approve",
+      HTML("Discard&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Approve"),
       icon("arrow-alt-circle-right"), 
     ),
     hr(),
@@ -48,15 +48,15 @@ ui <- fixedPage(
     fluidRow(
       column(
         4,
-        h4("Name:"), textOutput("name"),
-        h4("Species:"), textOutput("species"),
+        h4("Name"), textOutput("name"),
+        h4("Species"), textOutput("species"),
         br()
       ),
       column(4, htmlOutput("url")),
       column(
         4,
-        h4("Personality:"), textOutput("personality"),
-        h4("Hobby:"), textOutput("hobby"),
+        h4("Personality"), textOutput("personality"),
+        h4("Hobby"), textOutput("hobby"),
         br()
       ),
     )
@@ -110,9 +110,9 @@ server <- function(input, output, session) {
     # Record our last swipe results
     latest_result <- data.frame(
       name = appVals$villager$Name,
-      species = appVals$villager$Species,
-      personality = appVals$villager$Personality,
-      hobby = appVals$villager$Hobby,
+      # species = appVals$villager$Species,
+      # personality = appVals$villager$Personality,
+      # hobby = appVals$villager$Hobby,
       swipe = card_swipe()
     )
     
