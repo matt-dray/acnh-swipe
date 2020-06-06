@@ -38,7 +38,7 @@ ui <- fixedPage(
   h1(icon("leaf")), h1("ACNH Popularity Contest"),
   p("Swipe on mobile • Click and drag on desktop • No personal data collected"),
   HTML(
-    "<a href='https://www.twitter.com/mattdray'>@mattdray</a> • <a href='https://www.github.com/matt-dray/acnh-swipe'>Source</a> • <a href='https://www.rostrum.blog'>Blog</a>"
+    "<a href='https://www.twitter.com/mattdray'>@mattdray</a> • <a href='https://www.github.com/matt-dray/acnh-swipe'>Source</a> • <a href='https://www.rostrum.blog/2020/06/06/acnh-swipe/'>Blog</a>"
   ),
   
   hr(), br(),
