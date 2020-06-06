@@ -8,10 +8,12 @@
 # Attach packages
 library(shinysense)  # remotes::install.github("nstrayer/shinysense")
 library(shiny)
-library(dplyr)
-library(readr)
 library(googledrive)
 library(googlesheets4)
+library(dplyr)
+library(readr)
+library(tidyr)
+library(icon)  # remotes::install.github("ropenscilabs/icon")
 
 # Google Sheet unique ID
 ss <- "1kMbmav6XvYqnTO202deyZQh37JeWtTK4ThIXdxGmEbs"
@@ -33,11 +35,12 @@ ui <- fixedPage(
   
   title = "ACNH PopCon",
   
-  p(h1(icon("leaf")), h1("ACNH Popularity Contest")),
-  p("Swipe on mobile • Click and drag on desktop"),
+  h1(icon("leaf")), h1("ACNH Popularity Contest"),
+  p("Swipe on mobile • Click and drag on desktop • No personal data collected"),
   HTML(
     "<a href='https://www.twitter.com/mattdray'>@mattdray</a> • <a href='https://www.github.com/matt-dray/acnh-swipe'>Source</a> • <a href='https://www.rostrum.blog'>Blog</a>"
-  ), 
+  ),
+  
   hr(), br(),
   
   shinyswipr_UI(
@@ -73,7 +76,6 @@ ui <- fixedPage(
   ),
 
   br(), hr(),
-  
   
   h4("Top 10"),
   p("This table updates after you swipe"),
