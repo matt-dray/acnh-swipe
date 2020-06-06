@@ -22,7 +22,7 @@ A table of the top 10 by 'like' count is displayed and updated as you swipe.
 * Made with [R](https://www.r-project.org/) using the packages [{shiny}](https://shiny.rstudio.com/), [{googledrive}](https://googledrive.tidyverse.org/), [{googlesheets4}](https://googlesheets4.tidyverse.org/) and [{tidyverse}](https://www.tidyverse.org/)
 * The swiping mechanism is from [Nick Strayer](http://nickstrayer.me/)'s [{shinysense}](http://nickstrayer.me/shinysense/) package
 * Data from [Kaggle](https://www.kaggle.com/jessicali9530/animal-crossing-new-horizons-nookplaza-dataset/data) and [TidyTuesday](https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-05-05/readme.md)
-* Icons from [Ionicons](https://ionicons.com/) via the [{icon}](https://github.com/ropenscilabs/icon) package
+* Icons from [Font Awesome](https://www.fontawesome.com/) ([Creative Commons Attribution 4.0 International](https://fontawesome.com/license) license, no changes made) via the [{icon}](https://github.com/ropenscilabs/icon) package
 
 # Note on data
 
