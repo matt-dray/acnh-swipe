@@ -13,6 +13,9 @@ library(readr)
 library(googledrive)
 library(googlesheets4)
 
+# Google Sheet unique ID
+ss <- "1kMbmav6XvYqnTO202deyZQh37JeWtTK4ThIXdxGmEbs"
+
 # Communicate with Google Sheets
 options(gargle_oauth_cache = ".secrets")
 drive_auth(cache = ".secrets", email = "mattdrayshiny@gmail.com")
@@ -32,47 +35,53 @@ ui <- fixedPage(
   
   h1("[WIP] Animal Crossing Tinder"),
   p("Swipe on mobile • Click and drag on desktop"),
+  HTML(
+    "<a href='https://www.twitter.com/mattdray'>@mattdray</a> • <a href='https://www.github.com/matt-dray/acnh-swipe'>Source</a> • <a href='https://www.rostrum.blog'>Blog</a>"
+  ), 
   hr(), br(),
   
   shinyswipr_UI(
-    
+
     "acnh_swipe",
     
     p(
-      icon("arrow-alt-circle-left"), 
-      HTML("Discard&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Approve"),
-      icon("arrow-alt-circle-right"), 
+      icon("arrow-left"),
+      HTML("Discard • Approve"),
+      icon("arrow-right"),
     ),
-    hr(),
     
-    fluidRow(
+    
+    fixedRow(
+      column(4, htmlOutput("url")),
       column(
         4,
         h4("Name"), textOutput("name"),
         h4("Species"), textOutput("species"),
-        br()
       ),
-      column(4, htmlOutput("url")),
       column(
         4,
         h4("Personality"), textOutput("personality"),
         h4("Hobby"), textOutput("hobby"),
-        br()
       ),
     )
+
     
   ),
-  
+
   br(), hr(),
   
-  h4("Swipe history"),
-  column(12, align = "center", tableOutput("resultsTable"))
-
+  
+  h4("Top 10"),
+  p("This table updates after you swipe"),
+  column(12, align = "center", tableOutput("table"))
+  
 )
 
 # Server ------------------------------------------------------------------
 
 server <- function(input, output, session) {
+  
+  card_swipe <- callModule(shinyswipr, "acnh_swipe")
   
   # Data from Tidy Tuesday and Kaggle
   # https://github.com/rfordatascience/tidytuesday/blob/master/data/2020/2020-05-05/readme.md
@@ -82,17 +91,20 @@ server <- function(input, output, session) {
   villagers <- left_join(villagers_k, villagers_tt, by = c("Name" = "name")) %>% 
     mutate(url = paste0("<img src='", url, "'>"))
   
-  card_swipe <- callModule(shinyswipr, "acnh_swipe")
+  # Sample one villager
+  villager <- sample_n(villagers, 1)
   
-  villager <- sample_n(villagers, 1)  # sample one villager
-  output$url <- renderText({ villager$url })
-  output$name <- renderText({ villager$Name })
-  output$species <- renderText({ villager$Species })
+  # Render the villlager variables
+  output$url <-         renderText({ villager$url })
+  output$name <-        renderText({ villager$Name })
+  output$species <-     renderText({ villager$Species })
   output$personality <- renderText({ villager$Personality })
-  output$hobby <- renderText({ villager$Hobby })
+  output$hobby <-       renderText({ villager$Hobby })
   
+  # Render the table of swipes
   output$resultsTable <- renderDataTable({ appVals$swipes })
   
+  # Set up reactive values object
   appVals <- reactiveValues(
     villager  = villager,
     swipes = data.frame(
@@ -107,39 +119,54 @@ server <- function(input, output, session) {
   
   observeEvent(card_swipe(), {
     
-    # Record our last swipe results
+    # Record the last swipe result
     latest_result <- data.frame(
       name = appVals$villager$Name,
-      # species = appVals$villager$Species,
-      # personality = appVals$villager$Personality,
-      # hobby = appVals$villager$Hobby,
       swipe = card_swipe()
     )
     
     # Send to Google Sheets
-    date_col <- data.frame(date = Sys.time())  # capture date
-    sheet_append(
-      "1kMbmav6XvYqnTO202deyZQh37JeWtTK4ThIXdxGmEbs",
+    date_col <- data.frame(date = Sys.time())  # capture datetime
+    sheet_append(  # add a row to the sheet
+      ss,  # the Google Sheet unique ID
       cbind(date_col, latest_result)
-    )  # add a row to the sheet
+    )  
     
     # Add to table of all swipe results
     appVals$swipes <- rbind(latest_result, appVals$swipes)
     
     # Send results to the output
-    output$resultsTable <- renderTable({ appVals$swipes })
+    #output$resultsTable <- renderTable({ appVals$swipes })
     
     # Update the villager
     appVals$villager <- sample_n(villagers, 1)
     
     # Send update to ui
-    output$url <- renderText({ appVals$villager$url })
-    output$name <- renderText({ appVals$villager$Name })
-    output$species <- renderText({ appVals$villager$Species })
+    output$url <-         renderText({ appVals$villager$url })
+    output$name <-        renderText({ appVals$villager$Name })
+    output$species <-     renderText({ appVals$villager$Species })
     output$personality <- renderText({ appVals$villager$Personality })
-    output$hobby <- renderText({ appVals$villager$Hobby })
+    output$hobby <-       renderText({ appVals$villager$Hobby })
     
   }) # Close event observe.
+  
+  # Read latest data from the Google Sheet
+  the_data <- eventReactive(
+    { card_swipe() },
+    read_sheet(ss) %>%
+      count(name, swipe) %>%
+      pivot_wider(names_from = swipe, values_from = n) %>% 
+      arrange(`right`) %>% 
+      mutate(Rank = row_number()) %>% 
+      select(
+        Rank, Name = name, `Approved` = right, `Declined` = left
+      ) %>% 
+      slice(1:10),
+    ignoreNULL = FALSE
+  )
+  
+  # Render the latest results as a table
+  output$table <- renderTable(the_data())
   
 }
 
