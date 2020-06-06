@@ -31,9 +31,9 @@ ui <- fixedPage(
 
   class = "text-center",
   
-  title = "Animal Crossing Tinder",
+  title = "ACNH PopCon",
   
-  h1("[WIP] Animal Crossing Tinder"),
+  p(h1(icon("leaf")), h1("ACNH Popularity Contest")),
   p("Swipe on mobile • Click and drag on desktop"),
   HTML(
     "<a href='https://www.twitter.com/mattdray'>@mattdray</a> • <a href='https://www.github.com/matt-dray/acnh-swipe'>Source</a> • <a href='https://www.rostrum.blog'>Blog</a>"
@@ -46,25 +46,29 @@ ui <- fixedPage(
     
     p(
       icon("arrow-left"),
-      HTML("Discard • Approve"),
+      HTML("Dislike • Like"),
       icon("arrow-right"),
     ),
     
+    htmlOutput("url"),
     
     fixedRow(
-      column(4, htmlOutput("url")),
+      column(3),
       column(
-        4,
-        h4("Name"), textOutput("name"),
-        h4("Species"), textOutput("species"),
+        6,
+        column(
+          6,
+          h4("Name"), textOutput("name"),
+          h4("Species"), textOutput("species"),
+        ),
+        column(
+          6,
+          h4("Personality"), textOutput("personality"),
+          h4("Hobby"), textOutput("hobby"),
+        ),
       ),
-      column(
-        4,
-        h4("Personality"), textOutput("personality"),
-        h4("Hobby"), textOutput("hobby"),
-      ),
+      column(3)
     )
-
     
   ),
 
@@ -159,8 +163,9 @@ server <- function(input, output, session) {
       arrange(`right`) %>% 
       mutate(Rank = row_number()) %>% 
       select(
-        Rank, Name = name, `Approved` = right, `Declined` = left
+        Rank, Name = name, Liked = right, Disliked = left
       ) %>% 
+      dplyr::filter(!is.na("Liked") & !is.na("Disliked")) %>% 
       slice(1:10),
     ignoreNULL = FALSE
   )
