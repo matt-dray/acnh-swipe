@@ -162,7 +162,7 @@ server <- function(input, output, session) {
     read_sheet(ss) %>%
       count(name, swipe) %>%
       pivot_wider(names_from = swipe, values_from = n) %>% 
-      arrange(`right`) %>% 
+      arrange(`right`, desc(`left`)) %>% 
       mutate(Rank = row_number()) %>% 
       select(
         Rank, Name = name, Liked = right, Disliked = left
