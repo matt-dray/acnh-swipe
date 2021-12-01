@@ -1,19 +1,21 @@
 # acnh-swipe: Tinder, but like, for Animal Crossing
 # Matt Dray (@mattdray, www.rostrum.blog)
-# June 2020
+# June 2020 (Updated November 2021)
 
+# Blog post: https://www.rostrum.blog/2020/06/06/acnh-swipe/
+# Live app (unless taken down): https://mattdray.shinyapps.io/acnh-swipe/
 
 # Setup -------------------------------------------------------------------
 
 # Attach packages
-library(shinysense)  # remotes::install.github("nstrayer/shinysense")
+library(shinysense)  # remotes::install_github("nstrayer/shinysense")
 library(shiny)
 library(googledrive)
 library(googlesheets4)
 library(dplyr)
 library(readr)
 library(tidyr)
-library(icon)  # remotes::install.github("ropenscilabs/icon")
+library(fontawesome)
 
 # Google Sheet unique ID
 ss <- "1kMbmav6XvYqnTO202deyZQh37JeWtTK4ThIXdxGmEbs"
@@ -35,7 +37,7 @@ ui <- fixedPage(
   
   title = "ACNH PopCon",
   
-  h1(icon("leaf")), h1("ACNH Popularity Contest"),
+  h1(fa("leaf")), h1("ACNH Popularity Contest"),
   p("Swipe on mobile • Click and drag on desktop • No personal data collected"),
   HTML(
     "<a href='https://www.twitter.com/mattdray'>@mattdray</a> • <a href='https://www.github.com/matt-dray/acnh-swipe'>Source</a> • <a href='https://www.rostrum.blog/2020/06/06/acnh-swipe/'>Blog</a>"
@@ -48,9 +50,9 @@ ui <- fixedPage(
     "acnh_swipe",
     
     p(
-      icon("arrow-left"),
+      fa("arrow-left"),
       HTML("Dislike • Like"),
-      icon("arrow-right"),
+      fa("arrow-right"),
     ),
     
     htmlOutput("url"),
@@ -163,10 +165,13 @@ server <- function(input, output, session) {
       count(name, swipe) %>%
       pivot_wider(names_from = swipe, values_from = n) %>% 
       replace_na(list(right = 0L, left = 0L)) %>% 
-      arrange(desc(right), left) %>% 
+      mutate(pc_right = round(100 * (right / (right + left)))) %>% 
+      arrange(desc(pc_right), desc(right), left) %>% 
       mutate(Rank = row_number()) %>% 
-      select(
-        Rank, Name = name, Liked = right, Disliked = left
+      transmute(
+        Rank, Name = name, 
+        Liked = right, Disliked = left, 
+        `Percent liked` = as.integer(pc_right)
       ) %>% 
       dplyr::filter(!is.na("Liked") & !is.na("Disliked")) %>% 
       slice(1:10),
